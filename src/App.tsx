@@ -24,8 +24,65 @@ import { InteractiveScatterPlot } from './components/ScatterPlot';
 import { ForceDirectedGraph } from './components/ForceGraph';
 import { TimeSeriesChart } from './components/LineChart';
 
+const CodeBlock = ({ code }: { code: string }) => (
+  <div className="bg-zinc-900 rounded-2xl p-6 overflow-hidden border border-zinc-800 shadow-2xl">
+    <div className="flex items-center gap-2 mb-4 border-b border-zinc-800 pb-4">
+      <div className="flex gap-1.5">
+        <div className="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/40" />
+        <div className="w-2.5 h-2.5 rounded-full bg-amber-500/20 border border-amber-500/40" />
+        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/40" />
+      </div>
+      <span className="text-[10px] font-mono text-zinc-500 ml-2 uppercase tracking-widest">D3.js Implementation</span>
+    </div>
+    <pre className="font-mono text-xs leading-relaxed text-zinc-300 overflow-x-auto">
+      <code>{code}</code>
+    </pre>
+  </div>
+);
+
 export default function App() {
   const [activeSection, setActiveSection] = useState('intro');
+
+  const snippets = {
+    bars: `// Data Binding & Transitions
+d3.select(svg)
+  .selectAll("rect")
+  .data(data)
+  .join("rect")
+  .transition()
+  .duration(800)
+  .attr("y", d => y(d.value))
+  .attr("height", d => height - y(d.value));`,
+    scatter: `// Scales & Interactive Events
+const x = d3.scaleLinear().domain([0, 100]).range([0, width]);
+
+circles.on("mouseover", (event, d) => {
+  d3.select(event.currentTarget)
+    .transition().duration(200)
+    .attr("r", d.r + 5);
+  tooltip.style("display", "block");
+});`,
+    force: `// Physics Simulation
+const simulation = d3.forceSimulation(nodes)
+  .force("link", d3.forceLink(links).id(d => d.id))
+  .force("charge", d3.forceManyBody().strength(-300))
+  .force("center", d3.forceCenter(width / 2, height / 2));
+
+simulation.on("tick", () => {
+  link.attr("x1", d => d.source.x)...
+});`,
+    line: `// Path Generators & Dash Animation
+const area = d3.area()
+  .x(d => x(d.date))
+  .y0(height)
+  .y1(d => y(d.value))
+  .curve(d3.curveMonotoneX);
+
+path.attr("stroke-dashoffset", length)
+  .transition()
+  .duration(2000)
+  .attr("stroke-dashoffset", 0);`
+  };
 
   const sections = [
     { id: 'intro', title: 'Introduction', icon: Info },
@@ -175,11 +232,14 @@ export default function App() {
                   <p className="text-zinc-500">Demonstrating data binding, scales, and animated transitions.</p>
                 </div>
                 <AnimatedBarChart />
-                <div className="prose prose-zinc max-w-none">
-                  <p className="text-sm text-zinc-600 leading-relaxed">
-                    This example shows how D3 handles enter, update, and exit patterns. 
-                    When the data changes, D3 calculates the difference and animates the bars to their new positions and sizes.
-                  </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                  <div className="prose prose-zinc max-w-none">
+                    <p className="text-sm text-zinc-600 leading-relaxed">
+                      This example shows how D3 handles enter, update, and exit patterns. 
+                      When the data changes, D3 calculates the difference and animates the bars to their new positions and sizes.
+                    </p>
+                  </div>
+                  <CodeBlock code={snippets.bars} />
                 </div>
               </motion.section>
             )}
@@ -197,11 +257,14 @@ export default function App() {
                   <p className="text-zinc-500">Exploring tooltips, zooming, and multi-dimensional data.</p>
                 </div>
                 <InteractiveScatterPlot />
-                <div className="prose prose-zinc max-w-none">
-                  <p className="text-sm text-zinc-600 leading-relaxed">
-                    Scatter plots are excellent for showing correlations. This implementation includes 
-                    interactive tooltips and a zoom behavior that allows for deep exploration of dense data points.
-                  </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                  <div className="prose prose-zinc max-w-none">
+                    <p className="text-sm text-zinc-600 leading-relaxed">
+                      Scatter plots are excellent for showing correlations. This implementation includes 
+                      interactive tooltips and a zoom behavior that allows for deep exploration of dense data points.
+                    </p>
+                  </div>
+                  <CodeBlock code={snippets.scatter} />
                 </div>
               </motion.section>
             )}
@@ -219,11 +282,14 @@ export default function App() {
                   <p className="text-zinc-500">Visualizing relationships and network topologies using physics simulations.</p>
                 </div>
                 <ForceDirectedGraph />
-                <div className="prose prose-zinc max-w-none">
-                  <p className="text-sm text-zinc-600 leading-relaxed">
-                    D3's force simulation uses a velocity Verlet integrator for physical forces. 
-                    Nodes repel each other while links pull them together, creating an organic layout of complex networks.
-                  </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                  <div className="prose prose-zinc max-w-none">
+                    <p className="text-sm text-zinc-600 leading-relaxed">
+                      D3's force simulation uses a velocity Verlet integrator for physical forces. 
+                      Nodes repel each other while links pull them together, creating an organic layout of complex networks.
+                    </p>
+                  </div>
+                  <CodeBlock code={snippets.force} />
                 </div>
               </motion.section>
             )}
@@ -241,11 +307,14 @@ export default function App() {
                   <p className="text-zinc-500">Rendering smooth area charts with complex path generators.</p>
                 </div>
                 <TimeSeriesChart />
-                <div className="prose prose-zinc max-w-none">
-                  <p className="text-sm text-zinc-600 leading-relaxed">
-                    Line and area charts are the bread and butter of data visualization. 
-                    D3 provides powerful path generators and curve interpolators to create smooth, professional charts.
-                  </p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                  <div className="prose prose-zinc max-w-none">
+                    <p className="text-sm text-zinc-600 leading-relaxed">
+                      Line and area charts are the bread and butter of data visualization. 
+                      D3 provides powerful path generators and curve interpolators to create smooth, professional charts.
+                    </p>
+                  </div>
+                  <CodeBlock code={snippets.line} />
                 </div>
               </motion.section>
             )}
